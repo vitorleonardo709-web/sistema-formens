@@ -19,8 +19,8 @@ clientes = recupera_clientes()
 
 vendas = recupera_vendas()
 #######################################################################
-
-while True:
+sistema_ligado = True
+while sistema_ligado:
     limpar_tela()
     print(50*'#')
     
@@ -37,7 +37,8 @@ while True:
     p1 = input('Pressione 1 para entrar no sistema ou 0 para sair ! : ')
     
     if p1 == '1':
-        while True:
+        menu = True
+        while menu:
             limpar_tela()
             print(40*'#')
             print('I          OPÇÕES DO SISTEMA           I')
@@ -59,20 +60,20 @@ while True:
                 clientes = menu_clientes(clientes)
             
             elif p2 == '3':
-                vendas = menu_vendas(vendas)
+                vendas, clientes, produtos = menu_vendas(vendas, clientes, produtos)
             
             elif p2 == '4':
-                menu_relatorio()
+                menu_relatorio(vendas,clientes,produtos)
 
             elif p2 == '0':
-                break
+                menu = False
             else:
                 limpar_tela()
                 print('Digite uma opção válida!')
                 input('Pressione ENTER para continuar.')
     elif p1 =='0' :
         print('Você saiu do sistema! Até mais.') 
-        break
+        sistema_ligado = False
     else:
         limpar_tela()
         print('Digite uma opção válida')

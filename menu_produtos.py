@@ -28,6 +28,13 @@ def menu_produtos(produtos):
             print()
             
             codigo = input('> Digite o código do produto : ')
+            if codigo in produtos:
+                print()
+                print('Esse produto já está cadastrado!')
+                print(40*'#')
+                input('Pressione ENTER para continuar!')
+                continue
+            
             nome_produto = input('> Digite o nome do produto : ')
             preco_produto = float(input('> Digite o preco do produto : '))
             quantidade_produto = int(input('> Digite a quantidade do produto : '))

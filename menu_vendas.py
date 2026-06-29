@@ -5,7 +5,7 @@ def limpar_tela():
     else:
         os.system('clear')
 
-def menu_vendas(vendas):
+def menu_vendas(vendas, clientes, produtos):
     while True:
         limpar_tela()
         print(40*'#')
@@ -28,14 +28,45 @@ def menu_vendas(vendas):
             print('----------------------------------------')
             print()
             id_venda = input('Digite o ID da venda : ')
-            cliente_venda = input('> Nome do cliente que comprou : ')
-            produto_venda = input('> Nome do produto vendido : ')
-            quantidade_venda = int(input('> Quantidade vendida : '))
-            valor_venda = float(input('> Valor total da venda: R$ '))
-            vendas [id_venda] = {'nome' : cliente_venda , 'produto' : produto_venda,'quantidade' : quantidade_venda,'valor' : valor_venda}
+            if id_venda in vendas:
+                print()
+                print('Essa venda já existe!')
+                input('Pressione ENTER para voltar')
+                continue
+            
+            id_cliente = input('Digite o ID do cliente que vai comprar : ')
+            if id_cliente not in clientes or clientes[id_cliente]['ativo'] == False:
+                print('Cliente não encontrado ou inativo!')
+                print()
+                print(40*'#')
+                input('Pressione ENTER para voltar.')
+                continue
+
+            codigo = input('Digite o código do produto : ')
+            if codigo not in produtos:
+                print('Produto não encontrado !')
+                print()
+                print(40*'#')
+                input('Pressione ENTER para voltar.')
+                continue
+
+            quantidade_venda = int(input('>Digite a quantidade vendida : '))
+            if quantidade_venda > produtos[codigo]['quantidade']:
+                print()
+                print('Estoque insuficiente para venda! ')
+                print(f"O estoque atual do {produtos[codigo]['nome']} é de {produtos[codigo]['quantidade']} . ")
+                print(40*'#')
+                input('Pressione ENTER para voltar.')
+                continue
+
+            produtos[codigo]['quantidade'] -= quantidade_venda
+            valor_venda = quantidade_venda * produtos[codigo]['preco']
+            print(f"Valor da venda : {valor_venda:.2f}")
+            
+            vendas [id_venda] = {'id_cliente': id_cliente, 'codigo': codigo,'quantidade': quantidade_venda,'valor': valor_venda}
             
             print()
-            print('Venda registrada com sucesso! [OK]')
+            print('Venda registrada com sucesso!')
             print()
             print(40*'#')
             input('Aperte ENTER para voltar.')
@@ -48,13 +79,15 @@ def menu_vendas(vendas):
             print()
             id_venda = input('Digite o ID da venda : ')
             if id_venda in vendas:
+                id_cliente = vendas[id_venda]['id_cliente']
+                codigo = vendas[id_venda]['codigo']
+                
                 print(f'''
 Dados da venda : {id_venda}
-Nome do cliente : {vendas[id_venda]['nome']}
-Nome do produto : {vendas[id_venda]['produto']}
+Nome do cliente : {clientes[id_cliente]['nome']}
+Nome do produto : {produtos[codigo]['nome']}
 Quantidade vendida : {vendas[id_venda]['quantidade']}
-Valor da venda : {vendas[id_venda]['valor']}
-                        
+Valor da venda : R$ {vendas[id_venda]['valor']:.2f}
                         ''')
                 print()
                 print(40*'#')
@@ -64,6 +97,7 @@ Valor da venda : {vendas[id_venda]['valor']}
                 print('Venda não cadastrada ainda.')
                 print(40*'#')
                 input('Aperte ENTER para voltar.')
+
                 
         elif p3 == '3':
             limpar_tela()
@@ -73,20 +107,39 @@ Valor da venda : {vendas[id_venda]['valor']}
             print()
             id_venda = input('Digite o ID da venda:')
             if id_venda in vendas:
+                id_cliente = vendas[id_venda]['id_cliente']
+                codigo = vendas[id_venda]['codigo']
+                quantidade_antiga = vendas[id_venda]['quantidade']
+                
                 print()
                 print('Informações atuais da venda:')
                 print(f'''
-Cliente = {vendas[id_venda]['nome']}
-Produto = {vendas[id_venda]['produto']}
-Quantidade = {vendas[id_venda]['quantidade']}
-Valor total = R$ {vendas[id_venda]['valor']}
+Cliente = {clientes[id_cliente]['nome']}
+Produto = {produtos[codigo]['nome']}
+Quantidade = {quantidade_antiga}
+Valor total = R$ {vendas[id_venda]['valor']:.2f}
                 ''')
                 print('------------------------------------------')
                 print('Digite os novos dados desta venda: ')
-                vendas[id_venda]['nome'] = input('Cliente : ')
-                vendas[id_venda]['produto'] = input('Produto : ')
-                vendas[id_venda]['quantidade'] = int(input('Quantidade : '))
-                vendas[id_venda]['valor'] = float(input('Valor total : R$ '))
+                novo_id_cliente = input('Novo ID do Cliente : ')
+                if novo_id_cliente not in clientes or clientes[novo_id_cliente]['ativo'] == False:
+                    print('Cliente inválido ou inativo!')
+                    input('Aperte ENTER para voltar.')
+                    continue
+
+                nova_quantidade = int(input('Digite a nova quantidade : '))
+            
+                diferenca = nova_quantidade - quantidade_antiga
+                if diferenca > produtos[codigo]['quantidade']:
+                    print('Estoque insuficiente para esse aumento!')
+                    input('Aperte ENTER para voltar.')
+                    continue
+                produtos[codigo]['quantidade'] -= diferenca
+                novo_valor = nova_quantidade * produtos[codigo]['preco']
+                
+                vendas[id_venda]['id_cliente'] = novo_id_cliente
+                vendas[id_venda]['quantidade'] = nova_quantidade
+                vendas[id_venda]['valor'] = novo_valor
                 print()
                 print('Venda atualizada com sucesso! [OK]')
                 print(40*'#')
@@ -104,21 +157,25 @@ Valor total = R$ {vendas[id_venda]['valor']}
             print()
             id_venda = input('Digite o ID da venda que deseja excluir : ')
             if id_venda in vendas:
-                excluir = input(f'Deseja cancelar a venda de {vendas[id_venda]['produto']} para {vendas[id_venda]['nome']}? (1-Sim / 2-Não) : ')
+                id_cliente = vendas[id_venda]['id_cliente']
+                codigo = vendas[id_venda]['codigo']
+                nome_produto = produtos[codigo]['nome']
+                nome_cliente = clientes[id_cliente]['nome']
+                excluir = input(f"Deseja cancelar a venda de {nome_produto} para {nome_cliente}? (1-Sim / 2-Não) : ")
                 print()
                 if excluir == '1':
+                    quantidade_devolvida = vendas[id_venda]['quantidade']
+                    if codigo in produtos:
+                        produtos[codigo]['quantidade'] += quantidade_devolvida
+                        print('Estoque devolvido com sucesso!')
+                    else:
+                        print('O produto inexistente, o estoque não foi devolvido.')
+                    
                     del vendas[id_venda]
-                    print('Venda excluída com sucesso! [X]')
-                elif excluir == '2':
-                    print('Nenhuma alteração foi feita.')
-                else:
-                    print('Digite uma opção válida!')
-                print(40*'#')
-                input('Pressione ENTER para voltar.')
+                    print('Venda excluída com sucesso! ')
             
             else:
-                
-                print('Não há nenhuma venda registrada ainda.')
+                print('Não há nenhuma venda registrada com esse ID.')
                 print()
                 print(40*'#')
                 input('Pressione ENTER para voltar.')
@@ -129,4 +186,4 @@ Valor total = R$ {vendas[id_venda]['valor']}
             limpar_tela()
             print('Digite uma opção válida!')
             input('Pressione ENTER para voltar.')
-    return vendas 
+    return vendas,clientes, produtos 
